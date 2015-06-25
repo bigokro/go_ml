@@ -424,7 +424,7 @@ func copyTheta(theta [][][]float64) (copyTheta [][][]float64) {
 	return
 }
 
-func (nn *NeuralNet) getTheta() [][][]float64 {
+func (nn *NeuralNet) GetTheta() [][][]float64 {
 	return nn.Theta
 }
 
@@ -440,7 +440,7 @@ func removeBias(x [][]float64) (result [][]float64) {
 }
 
 // rollThetasGrad returns a 1 x n matrix with the thetas concatenated
-func (nn *NeuralNet) rollThetasGrad(x [][][]float64) [][]float64 {
+func (nn *NeuralNet) RollThetasGrad(x [][][]float64) [][]float64 {
 	result := []float64{}
 	for i := 0; i < len(x); i++ {
 		for j := 0; j < len(x[i][0]); j++ {
@@ -453,7 +453,7 @@ func (nn *NeuralNet) rollThetasGrad(x [][][]float64) [][]float64 {
 	return [][]float64{result}
 }
 
-func (nn *NeuralNet) setTheta(t [][][]float64) {
+func (nn *NeuralNet) SetTheta(t [][][]float64) {
 	nn.Theta = t
 }
 
@@ -493,7 +493,7 @@ func sigmoidGradient(x float64) float64 {
 }
 
 // unrollThetasGrad Returns the 1 x n matrix as the multilayer theta way
-func (nn *NeuralNet) unrollThetasGrad(x [][]float64) (r [][][]float64) {
+func (nn *NeuralNet) UnrollThetasGrad(x [][]float64) (r [][][]float64) {
 	pos := 0
 	r = make([][][]float64, len(nn.Theta))
 	for i := 0; i < len(nn.Theta); i++ {

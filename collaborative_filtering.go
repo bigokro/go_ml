@@ -15,12 +15,12 @@ import (
 //	http://en.wikipedia.org/wiki/Collaborative_filtering
 type CollaborativeFilter struct {
 	// User ratios by item (rows), and user (cols)
-	Ratings     [][]float64
+	Ratings [][]float64
 	// Matrix for classified or not items by user, use 0.0 for unclissified, 1.0 for classified
 	AvailableRatings [][]float64
 	// Martrix with items and features
-	ItemsTheta  [][]float64
-	Theta       [][]float64
+	ItemsTheta [][]float64
+	Theta      [][]float64
 	// Used for mean normalization, will store the mean ratings for all the items
 	Means       []float64
 	Features    int
@@ -248,7 +248,7 @@ func NewCollFilterFromCsv(ratingsSrc string, availableRatings string, itemsTheta
 
 // getTheta returns the thetas as a multidim array to be used by the fmincg
 // method
-func (cf *CollaborativeFilter) getTheta() [][][]float64 {
+func (cf *CollaborativeFilter) GetTheta() [][][]float64 {
 	return [][][]float64{
 		cf.ItemsTheta,
 		cf.Theta,
@@ -256,14 +256,14 @@ func (cf *CollaborativeFilter) getTheta() [][][]float64 {
 }
 
 // setTheta sets the both thetas
-func (cf *CollaborativeFilter) setTheta(t [][][]float64) {
+func (cf *CollaborativeFilter) SetTheta(t [][][]float64) {
 	cf.ItemsTheta = t[0]
 	cf.Theta = t[1]
 }
 
 // rollThetasGrad returns the both thetas as a one dimensin matrix to be used by
 // the fmincg method
-func (cf *CollaborativeFilter) rollThetasGrad(x [][][]float64) [][]float64 {
+func (cf *CollaborativeFilter) RollThetasGrad(x [][][]float64) [][]float64 {
 	values := make([]float64, len(cf.ItemsTheta)*len(cf.ItemsTheta[0])+len(cf.Theta)*len(cf.Theta[0]))
 	for i := 0; i < len(cf.ItemsTheta); i++ {
 		for j := 0; j < len(cf.ItemsTheta[0]); j++ {
@@ -284,7 +284,7 @@ func (cf *CollaborativeFilter) rollThetasGrad(x [][][]float64) [][]float64 {
 
 // unrollThetasGrad returns the thetas from the one dim matrix to be used in the
 // object
-func (cf *CollaborativeFilter) unrollThetasGrad(x [][]float64) (result [][][]float64) {
+func (cf *CollaborativeFilter) UnrollThetasGrad(x [][]float64) (result [][][]float64) {
 	result = make([][][]float64, 2)
 	result[0] = make([][]float64, len(cf.ItemsTheta))
 	for i := 0; i < len(cf.ItemsTheta); i++ {

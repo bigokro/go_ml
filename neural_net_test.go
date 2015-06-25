@@ -1,8 +1,8 @@
 package ml
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestRollUnroll(t *testing.T) {
@@ -27,7 +27,7 @@ func TestRollUnroll(t *testing.T) {
 		}
 	}
 
-	finalTheta := nn.unrollThetasGrad(nn.rollThetasGrad(nn.Theta))
+	finalTheta := nn.UnrollThetasGrad(nn.RollThetasGrad(nn.Theta))
 
 	for i := 0; i < len(nn.Theta); i++ {
 		for j := 0; j < len(nn.Theta); j++ {

@@ -1,8 +1,8 @@
 package ml
 
 import (
-	"fmt"
 	"github.com/alonsovidales/go_matrix"
+	"log"
 	"math"
 )
 
@@ -12,13 +12,13 @@ type DataSet interface {
 	// Returns the cost and gradients for the current thetas configuration
 	CostFunction(lambda float64, calcGrad bool) (j float64, grad [][][]float64, err error)
 	// Returns the thetas in a 1xn matrix
-	rollThetasGrad(x [][][]float64) [][]float64
+	RollThetasGrad(x [][][]float64) [][]float64
 	// Returns the thetas rolled by the rollThetasGrad method as it original form
-	unrollThetasGrad(x [][]float64) [][][]float64
+	UnrollThetasGrad(x [][]float64) [][][]float64
 	// Sets the Theta param after convert it to the corresponding internal data structure
-	setTheta(t [][][]float64)
+	SetTheta(t [][][]float64)
 	// Returns the theta as a 3 dimensional slice
-	getTheta() [][][]float64
+	GetTheta() [][][]float64
 }
 
 // Fmincg Minimize a continuous differentialble multivariate function. Starting point
@@ -76,29 +76,30 @@ func Fmincg(nn DataSet, lambda float64, length int, verbose bool) (fx []float64,
 		return
 	}
 
-	df1 := nn.rollThetasGrad(df1Tmp)
-	bestTheta := nn.getTheta()
+	df1 := nn.RollThetasGrad(df1Tmp)
+	bestTheta := nn.GetTheta()
 	minCost := f1
 
-	s := mt.Apply(df1, neg)                            // search direction is steepest
+	s := mt.Apply(df1, neg)                       // search direction is steepest
 	d1 := mt.MultTrans(mt.Apply(s, neg), s)[0][0] // this is the slope
-	z1 := red / (float64(1) - d1)                      // initial step is red/(|s|+1)
+	z1 := red / (float64(1) - d1)                 // initial step is red/(|s|+1)
 
-	mainLoop: for i := 0; i < length; i++ {
+mainLoop:
+	for i := 0; i < length; i++ {
 		var z2 float64
 
-		x0 := nn.rollThetasGrad(nn.getTheta()) // make a copy of current values
+		x0 := nn.RollThetasGrad(nn.GetTheta()) // make a copy of current values
 		f0 := f1
 		df0 := mt.Copy(df1)
 		x := mt.Sum(x0, mt.MultBy(s, z1)) // begin line search
 
-		nn.setTheta(nn.unrollThetasGrad(x))
+		nn.SetTheta(nn.UnrollThetasGrad(x))
 		f2, df2Temp, _ := nn.CostFunction(lambda, true)
-		df2 := nn.rollThetasGrad(df2Temp)
+		df2 := nn.RollThetasGrad(df2Temp)
 		d2 := mt.MultTrans(df2, s)[0][0]
 
 		if f2 < minCost {
-			bestTheta = nn.getTheta()
+			bestTheta = nn.GetTheta()
 			minCost = f2
 		}
 
@@ -109,7 +110,8 @@ func Fmincg(nn DataSet, lambda float64, length int, verbose bool) (fx []float64,
 
 		success := false
 		limit := -1.0
-		searchLoop: for iters := 0; iters < max*4; iters++ {
+	searchLoop:
+		for iters := 0; iters < max*4; iters++ {
 			m := max
 			for ((f2 > f1+z1*rho*d1) || (d2 > -sig*d1)) && m > 0 {
 				limit = z1
@@ -128,11 +130,11 @@ func Fmincg(nn DataSet, lambda float64, length int, verbose bool) (fx []float64,
 				z2 = math.Max(math.Min(z2, int*z3), (1-int)*z3) // don't accept too close to limits
 				z1 += z2                                        // update the step
 				x = mt.Sum(x, mt.MultBy(s, z2))
-				nn.setTheta(nn.unrollThetasGrad(x))
+				nn.SetTheta(nn.UnrollThetasGrad(x))
 				f2, df2Temp, _ = nn.CostFunction(lambda, true)
-				df2 = nn.rollThetasGrad(df2Temp)
+				df2 = nn.RollThetasGrad(df2Temp)
 				if f2 < minCost {
-					bestTheta = nn.getTheta()
+					bestTheta = nn.GetTheta()
 					minCost = f2
 				}
 
@@ -180,13 +182,13 @@ func Fmincg(nn DataSet, lambda float64, length int, verbose bool) (fx []float64,
 			z3 = -z2
 			z1 += z2
 			x = mt.Sum(x, mt.MultBy(s, z2))
-			nn.setTheta(nn.unrollThetasGrad(x))
+			nn.SetTheta(nn.UnrollThetasGrad(x))
 			f2, df2Temp, _ = nn.CostFunction(lambda, true)
 			if f2 < minCost {
-				bestTheta = nn.getTheta()
+				bestTheta = nn.GetTheta()
 				minCost = f2
 			}
-			df2 = nn.rollThetasGrad(df2Temp)
+			df2 = nn.RollThetasGrad(df2Temp)
 
 			m--
 			d2 = mt.MultTrans(df2, s)[0][0]
@@ -196,7 +198,7 @@ func Fmincg(nn DataSet, lambda float64, length int, verbose bool) (fx []float64,
 			f1 = f2
 			fx = append(fx, f1)
 			if verbose {
-				fmt.Printf("Iteration: %d | Cost: %f\n", i+1, f1)
+				log.Printf("Iteration: %d | Cost: %f\n", i+1, f1)
 			}
 
 			// Polack-Ribiere direction
@@ -217,7 +219,7 @@ func Fmincg(nn DataSet, lambda float64, length int, verbose bool) (fx []float64,
 			lsFailed = false
 		} else {
 			// restore point from before failed line search
-			nn.setTheta(nn.unrollThetasGrad(x0))
+			nn.SetTheta(nn.UnrollThetasGrad(x0))
 			f1 = f0
 			df1 = df0
 			if lsFailed || i > length {
@@ -233,6 +235,6 @@ func Fmincg(nn DataSet, lambda float64, length int, verbose bool) (fx []float64,
 		}
 	}
 
-	nn.setTheta(bestTheta)
+	nn.SetTheta(bestTheta)
 	return
 }

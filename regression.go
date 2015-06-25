@@ -1,22 +1,22 @@
 package ml
 
 import (
-	"github.com/alonsovidales/go_matrix"
 	"fmt"
-	"strconv"
+	"github.com/alonsovidales/go_matrix"
+	"io/ioutil"
 	"math"
 	"math/rand"
-	"time"
-	"io/ioutil"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // Regression Linear and logistic regression structure
 type Regression struct {
 	X [][]float64 // Training set of values for each feature, the first dimension are the test cases
-	Y []float64 // The training set with values to be predicted
+	Y []float64   // The training set with values to be predicted
 	// 1st dim -> layer, 2nd dim -> neuron, 3rd dim theta
-	Theta []float64
+	Theta     []float64
 	LinearReg bool // true indicates that this is a linear regression problem, false a logistic regression one
 }
 
@@ -86,11 +86,10 @@ func (rg *Regression) linearRegCostFunction(lambda float64, calcGrad bool) (j fl
 	regTerm := (lambda / (2 * m)) * mt.SumAll(mt.Apply([][]float64{rg.Theta[1:]}, powTwo))
 
 	j = errors + regTerm
-	grad = [][][]float64{mt.Sum(mt.MultBy(mt.Mult(mt.Sub(pred, y), rg.X), 1 / m), mt.MultBy(theta, lambda / m))}
+	grad = [][][]float64{mt.Sum(mt.MultBy(mt.Mult(mt.Sub(pred, y), rg.X), 1/m), mt.MultBy(theta, lambda/m))}
 
 	return
 }
-
 
 // LoadFile loads information from the local file located at filePath, and after
 // parse it, returns the Regression ready to be used with all the information
@@ -153,8 +152,7 @@ func (rg *Regression) logisticRegCostFunction(lambda float64, calcGrad bool) (j 
 	y := [][]float64{rg.Y}
 
 	hx := mt.Apply(mt.Mult(theta, mt.Trans(rg.X)), sigmoid)
-	j = (
-		mt.Mult(mt.Apply(y, neg), mt.Trans(mt.Apply(hx, math.Log)))[0][0] -
+	j = (mt.Mult(mt.Apply(y, neg), mt.Trans(mt.Apply(hx, math.Log)))[0][0] -
 		mt.Mult(mt.Apply(y, oneMinus), mt.Trans(mt.Apply(mt.Apply(hx, oneMinus), math.Log)))[0][0]) / m
 
 	// Regularization
@@ -162,8 +160,8 @@ func (rg *Regression) logisticRegCostFunction(lambda float64, calcGrad bool) (j 
 	j += lambda / (2 * m) * mt.SumAll(mt.Apply(theta, powTwo))
 
 	// Gradient calc
-	gradAux := mt.MultBy(mt.Mult(mt.Sub(hx, y), rg.X), 1 / m)
-	grad = [][][]float64{mt.Sum(gradAux, mt.MultBy(theta, lambda / m))}
+	gradAux := mt.MultBy(mt.Mult(mt.Sub(hx, y), rg.X), 1/m)
+	grad = [][][]float64{mt.Sum(gradAux, mt.MultBy(theta, lambda/m))}
 
 	return
 }
@@ -186,22 +184,22 @@ func (rg *Regression) MinimizeCost(maxIters int, suffleData bool, verbose bool) 
 	cv := int64(float64(len(rg.X)) * 0.8)
 
 	trainingData = &Regression{
-		X: rg.X[:training],
-		Y: rg.Y[:training],
-		Theta: rg.Theta,
+		X:         rg.X[:training],
+		Y:         rg.Y[:training],
+		Theta:     rg.Theta,
 		LinearReg: rg.LinearReg,
 	}
 
 	cvData := &Regression{
-		X: rg.X[training:cv],
-		Y: rg.Y[training:cv],
-		Theta: rg.Theta,
+		X:         rg.X[training:cv],
+		Y:         rg.Y[training:cv],
+		Theta:     rg.Theta,
 		LinearReg: rg.LinearReg,
 	}
 	testData = &Regression{
-		X: rg.X[cv:],
-		Y: rg.Y[cv:],
-		Theta: rg.Theta,
+		X:         rg.X[cv:],
+		Y:         rg.Y[cv:],
+		Theta:     rg.Theta,
 		LinearReg: rg.LinearReg,
 	}
 
@@ -247,7 +245,7 @@ func (rg *Regression) MinimizeCost(maxIters int, suffleData bool, verbose bool) 
 	return
 }
 
-func (rg *Regression) getTheta() [][][]float64 {
+func (rg *Regression) GetTheta() [][][]float64 {
 	return [][][]float64{
 		[][]float64{
 			rg.Theta,
@@ -256,11 +254,11 @@ func (rg *Regression) getTheta() [][][]float64 {
 }
 
 // rollThetasGrad retuns a 1xn array that will contian the theta of the instance
-func (rg *Regression) rollThetasGrad(x [][][]float64) [][]float64 {
+func (rg *Regression) RollThetasGrad(x [][][]float64) [][]float64 {
 	return x[0]
 }
 
-func (rg *Regression) setTheta(t [][][]float64) {
+func (rg *Regression) SetTheta(t [][][]float64) {
 	rg.Theta = t[0][0]
 }
 
@@ -285,7 +283,7 @@ func (rg *Regression) shuffle() (shuffledData *Regression) {
 
 // unrollThetasGrad converts the given two dim slice to a tree dim slice in order
 // to be used with the Fmincg function
-func (rg *Regression) unrollThetasGrad(x [][]float64) [][][]float64 {
+func (rg *Regression) UnrollThetasGrad(x [][]float64) [][][]float64 {
 	return [][][]float64{
 		x,
 	}
